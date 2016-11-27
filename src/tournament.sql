@@ -3,7 +3,7 @@ CREATE TABLE players( name TEXT,
                       id SERIAL PRIMARY KEY
 );
 
-CREATE TABLE matches ( playerA TEXT,
-                       playerB TEXT,
+CREATE TABLE matches ( playerA INTEGER,
+                       playerB INTEGER,
                        victory TEXT
 );
