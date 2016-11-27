@@ -13,15 +13,31 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
-
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("DELETE FROM matches")
+    c.execute("UPDATE players set points='%s'", (0, ))
+    DB.commit()
+    DB.close()
 
 def deletePlayers():
     """Remove all the player records from the database."""
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("DELETE FROM players")
+    DB.commit()
+    DB.close()
 
 
 def countPlayers():
     """Returns the number of players currently registered."""
-
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("SELECT COUNT(*) "
+              "FROM players ")
+    result = c.fetchall()[0][0]
+    DB.close()
+    return result
 
 def registerPlayer(name):
     """Adds a player to the tournament database.
@@ -32,6 +48,11 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("INSERT INTO players (name, points) values (%s, 0)", (name,))
+    DB.commit()
+    DB.close()
 
 
 def playerStandings():
@@ -48,6 +69,18 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("SELECT players.id as pid, players.name, players.points, (SELECT COUNT(*) FROM matches where matches.playera=players.id OR matches.playerb=players.id) "
+              "FROM players "
+              "ORDER BY players.points DESC")
+    result = c.fetchall()
+    DB.close()
+    print
+    print result
+    print
+    return result
+
 
 def reportMatch(winner, loser):
     """Records the outcome of a single match between two players.
@@ -56,7 +89,20 @@ def reportMatch(winner, loser):
       winner:  the id number of the player who won
       loser:  the id number of the player who lost
     """
- 
+
+    winner = int(winner)
+    loser = int(loser)
+
+    DB = psycopg2.connect("dbname=tournament")
+    c = DB.cursor()
+    c.execute("INSERT INTO matches (playera, playerb, victory) values (%s, %s, %s)", (winner, loser, winner, ))
+    c.execute("SELECT points FROM players WHERE id='%s'", (winner, ))
+    points = c.fetchall()[0][0] + 1
+    c. execute("UPDATE players SET points='%s' WHERE players.id='%s'", (points, winner, ))
+    DB.commit()
+    DB.close()
+
+
  
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
