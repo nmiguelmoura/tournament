@@ -16,9 +16,10 @@ def deleteMatches():
     DB = psycopg2.connect("dbname=tournament")
     c = DB.cursor()
     c.execute("DELETE FROM matches")
-    c.execute("UPDATE players set points='%s'", (0, ))
+    c.execute("UPDATE players set points='%s'", (0,))
     DB.commit()
     DB.close()
+
 
 def deletePlayers():
     """Remove all the player records from the database."""
@@ -39,6 +40,7 @@ def countPlayers():
     DB.close()
     return result
 
+
 def registerPlayer(name):
     """Adds a player to the tournament database.
   
@@ -52,7 +54,15 @@ def registerPlayer(name):
     c = DB.cursor()
     c.execute("INSERT INTO players (name, points) values (%s, 0)", (name,))
     DB.commit()
+
+    # para apagar
+    c.execute("SELECT id FROM players WHERE name=%s", (name, ))
+    id = c.fetchall()[0][0]
+
     DB.close()
+
+    # para apagar
+    return id
 
 
 def playerStandings():
@@ -71,14 +81,12 @@ def playerStandings():
 
     DB = psycopg2.connect("dbname=tournament")
     c = DB.cursor()
-    c.execute("SELECT players.id as pid, players.name, players.points, (SELECT COUNT(*) FROM matches where matches.playera=players.id OR matches.playerb=players.id) "
-              "FROM players "
-              "ORDER BY players.points DESC")
+    c.execute(
+        "SELECT players.id as pid, players.name, players.points, (SELECT COUNT(*) FROM matches where matches.playera=players.id OR matches.playerb=players.id) "
+        "FROM players "
+        "ORDER BY players.points DESC")
     result = c.fetchall()
     DB.close()
-    print
-    print result
-    print
     return result
 
 
@@ -95,15 +103,14 @@ def reportMatch(winner, loser):
 
     DB = psycopg2.connect("dbname=tournament")
     c = DB.cursor()
-    c.execute("INSERT INTO matches (playera, playerb, victory) values (%s, %s, %s)", (winner, loser, winner, ))
-    c.execute("SELECT points FROM players WHERE id='%s'", (winner, ))
+    c.execute("INSERT INTO matches (playera, playerb, victory) values (%s, %s, %s)", (winner, loser, winner,))
+    c.execute("SELECT points FROM players WHERE id='%s'", (winner,))
     points = c.fetchall()[0][0] + 1
-    c. execute("UPDATE players SET points='%s' WHERE players.id='%s'", (points, winner, ))
+    c.execute("UPDATE players SET points='%s' WHERE players.id='%s'", (points, winner,))
     DB.commit()
     DB.close()
 
 
- 
 def swissPairings():
     """Returns a list of pairs of players for the next round of a match.
   
@@ -120,4 +127,86 @@ def swissPairings():
         name2: the second player's name
     """
 
+    DB = psycopg2.connect('dbname=tournament')
+    c = DB.cursor()
+    c.execute("SELECT COUNT(*) FROM players")
+    player_count = c.fetchall()[0][0]
+    c.execute("SELECT id, name, points FROM players ORDER BY points DESC")
+    player_series = c.fetchall()
 
+    pairs = make_pairs(c, player_series, player_count)
+    DB.close()
+
+
+    return pairs
+
+def make_pairs(cursor, players, players_to_pair):
+    pairs = []
+    matches_number = players_to_pair / 2
+    for num in range(players_to_pair - 1, -1, -1):
+        for i in range(players_to_pair - 1, -1, -1):
+            if i != num and players[i] != False and players[num] != False:
+                print num
+                print i
+                pl_a = players[num]
+                pl_b = players[i]
+                pair_available = test_pair(cursor, pl_a, pl_b)
+                print '####'
+                print pair_available
+                print '####'
+                if pair_available:
+                    pairs.append((pl_a[0], pl_a[1], pl_b[0], pl_b[1]))
+                    players[num] = False
+                    players[i] = False
+                    break
+
+    return pairs
+
+
+def test_pair(cursor, player_a, player_b):
+    player_a_id = player_a[0]
+    player_b_id = player_b[0]
+    cursor.execute("SELECT COUNT(*) FROM matches "
+                   "WHERE (playera='%s' AND playerb='%s') "
+                   "OR (playera='%s' AND playerb='%s')", (player_a_id, player_b_id, player_b_id, player_a_id))
+    if cursor.fetchall()[0][0] == 0:
+        return True
+    else:
+        return False
+
+deletePlayers()
+a = registerPlayer('Nuno')          # 3
+b = registerPlayer('Pedro')         # 2
+c = registerPlayer('Carolina')      # 1
+d = registerPlayer('Miguel')        # 1
+e = registerPlayer('Cris')          # 2
+f = registerPlayer('Marta')         # 2
+g = registerPlayer('Andre')         # 1
+h = registerPlayer('Joao')          # 0
+
+                                    # Nuno      3
+                                    # Pedro     2
+                                    # Marta     2
+                                    # Cris      2
+                                    # Miguel    1
+                                    # Carolina  1
+                                    # Andre     1
+                                    # Joao      0
+
+reportMatch(a, b)
+reportMatch(c, d)
+reportMatch(e, f)
+reportMatch(g, h)
+
+reportMatch(a, c)
+reportMatch(e, g)
+reportMatch(b, d)
+reportMatch(f, h)
+
+reportMatch(a, e)
+reportMatch(b, c)
+reportMatch(f, g)
+reportMatch(d, h)
+
+print playerStandings()
+print swissPairings()
