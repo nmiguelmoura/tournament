@@ -7,14 +7,7 @@ This project uses Python and PostgreSQL.
 ## API
 The API stores info in postgreSQL and has the following functions:
 
-connect() -> Allows connection to database.
-deleteMatches() -> Remove all the match records from the database.
-deletePlayers() -> Remove all the player records from the database.
-countPlayers() -> Returns the number of players currently registered.
-registerPlayer(name) -> Adds a player to the tournament database.
-playerStandings() -> Returns a list of the players and their win records, sorted by wins.
-reportMatch() -> Records the outcome of a single match between two players.
-swissPairings() -> Returns a list of pairs of players for the next round of a match.
+connect() -> Allows connection to database.<br>deleteMatches() -> Remove all the match records from the database.<br>deletePlayers() -> Remove all the player records from the database.<br>countPlayers() -> Returns the number of players currently registered.<br>registerPlayer(name) -> Adds a player to the tournament database.<br>playerStandings() -> Returns a list of the players and their win records, sorted by wins.<br>reportMatch() -> Records the outcome of a single match between two players.<br>swissPairings() -> Returns a list of pairs of players for the next round of a match.
 
 
 
