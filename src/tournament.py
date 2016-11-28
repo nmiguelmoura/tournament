@@ -54,15 +54,7 @@ def registerPlayer(name):
     c = DB.cursor()
     c.execute("INSERT INTO players (name, points) values (%s, 0)", (name,))
     DB.commit()
-
-    # para apagar
-    c.execute("SELECT id FROM players WHERE name=%s", (name, ))
-    id = c.fetchall()[0][0]
-
     DB.close()
-
-    # para apagar
-    return id
 
 
 def playerStandings():
@@ -129,84 +121,72 @@ def swissPairings():
 
     DB = psycopg2.connect('dbname=tournament')
     c = DB.cursor()
+    # Count number of players.
     c.execute("SELECT COUNT(*) FROM players")
     player_count = c.fetchall()[0][0]
+
+    # Get players list ordered by points.
+    # The player with biggest number of points is on top.
     c.execute("SELECT id, name, points FROM players ORDER BY points DESC")
     player_series = c.fetchall()
 
+    # Get pairs of players to play next round.
     pairs = make_pairs(c, player_series, player_count)
     DB.close()
-
 
     return pairs
 
 def make_pairs(cursor, players, players_to_pair):
+    # Initialize pairs list
     pairs = []
-    matches_number = players_to_pair / 2
-    for num in range(0, players_to_pair):
-        for i in range(0, players_to_pair):
-            if i != num and players[i] != False and players[num] != False:
-                print num
-                print i
-                pl_a = players[num]
-                pl_b = players[i]
-                pair_available = test_pair(cursor, pl_a, pl_b)
-                print '####'
-                print pair_available
-                print '####'
-                if pair_available:
-                    pairs.append((pl_a[0], pl_a[1], pl_b[0], pl_b[1]))
-                    players[num] = False
-                    players[i] = False
-                    break
 
+    # Get number of matches.
+    matches_number = players_to_pair / 2
+
+    # Pair players according to the number of points.
+    # For each player on list, try to pair with another with similar points.
+    for num in range(0, players_to_pair):
+        if players[num] != False:
+            # If player was not removed, get pair.
+            for i in range(0, players_to_pair):
+                if i != num and players[i] != False and players[num] != False:
+                    # If player is not the same for i and num and if player i and num exist, try to pair
+
+                    pl_a = players[num]
+                    pl_b = players[i]
+
+                    # Check if pair didn t already matched.
+                    pair_available = test_pair(cursor, pl_a, pl_b)
+
+                    if pair_available:
+                        # Run if pair didn t matched already.
+                        # Append tupple with pair id and name to pairs list.
+                        # (id_a, name_a, id_b, name_b)
+                        pairs.append((pl_a[0], pl_a[1], pl_b[0], pl_b[1]))
+
+                        # Remove players from players list
+                        players[num] = False
+                        players[i] = False
+
+                        # Stop nested loop;
+                        break
+    # Return the lit with tupples for each match in round
     return pairs
 
 
 def test_pair(cursor, player_a, player_b):
+    # Get players ids.
     player_a_id = player_a[0]
     player_b_id = player_b[0]
+
+    # Check if players already matched.
     cursor.execute("SELECT COUNT(*) FROM matches "
                    "WHERE (playera='%s' AND playerb='%s') "
                    "OR (playera='%s' AND playerb='%s')", (player_a_id, player_b_id, player_b_id, player_a_id))
+
     if cursor.fetchall()[0][0] == 0:
+        # Run if player never matched.
         return True
     else:
+        # Run if player already matched.
         return False
-
-deletePlayers()
-a = registerPlayer('Nuno')          # 3
-b = registerPlayer('Pedro')         # 2
-c = registerPlayer('Carolina')      # 1
-d = registerPlayer('Miguel')        # 1
-e = registerPlayer('Cris')          # 2
-f = registerPlayer('Marta')         # 2
-g = registerPlayer('Andre')         # 1
-h = registerPlayer('Joao')          # 0
-
-                                    # Nuno      3
-                                    # Pedro     2
-                                    # Marta     2
-                                    # Cris      2
-                                    # Miguel    1
-                                    # Carolina  1
-                                    # Andre     1
-                                    # Joao      0
-
-reportMatch(a, b)
-reportMatch(c, d)
-reportMatch(e, f)
-reportMatch(g, h)
-
-reportMatch(a, c)
-reportMatch(e, g)
-reportMatch(b, d)
-reportMatch(f, h)
-
-reportMatch(a, e)
-reportMatch(b, c)
-reportMatch(f, g)
-reportMatch(d, h)
-
-print playerStandings()
-print swissPairings()
