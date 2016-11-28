@@ -14,7 +14,7 @@ def connect():
 
 def deleteMatches():
     """Remove all the match records from the database."""
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute("DELETE FROM matches")
     c.execute("UPDATE players set points='%s'", (0,))
@@ -24,7 +24,7 @@ def deleteMatches():
 
 def deletePlayers():
     """Remove all the player records from the database."""
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute("DELETE FROM players")
     DB.commit()
@@ -33,7 +33,7 @@ def deletePlayers():
 
 def countPlayers():
     """Returns the number of players currently registered."""
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute("SELECT COUNT(*) "
               "FROM players ")
@@ -52,7 +52,7 @@ def registerPlayer(name):
       name: the player's full name (need not be unique).
     """
     name = bleach.clean(name)
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute("INSERT INTO players (name, points) values (%s, 0)", (name,))
     DB.commit()
@@ -73,7 +73,7 @@ def playerStandings():
         matches: the number of matches the player has played
     """
 
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute(
         "SELECT players.id as pid, players.name, players.points, (SELECT COUNT(*) FROM matches where matches.playera=players.id OR matches.playerb=players.id) "
@@ -95,7 +95,7 @@ def reportMatch(winner, loser):
     winner = int(bleach.clean(winner))
     loser = int(bleach.clean(loser))
 
-    DB = psycopg2.connect("dbname=tournament")
+    DB = connect()
     c = DB.cursor()
     c.execute("INSERT INTO matches (playera, playerb, victory) values (%s, %s, %s)", (winner, loser, winner,))
     c.execute("SELECT points FROM players WHERE id='%s'", (winner,))
@@ -121,7 +121,7 @@ def swissPairings():
         name2: the second player's name
     """
 
-    DB = psycopg2.connect('dbname=tournament')
+    DB = connect()
     c = DB.cursor()
     # Count number of players.
     c.execute("SELECT COUNT(*) FROM players")
