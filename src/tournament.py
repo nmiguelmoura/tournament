@@ -4,6 +4,7 @@
 #
 
 import psycopg2
+import bleach
 
 
 def connect():
@@ -50,6 +51,7 @@ def registerPlayer(name):
     Args:
       name: the player's full name (need not be unique).
     """
+    name = bleach.clean(name)
     DB = psycopg2.connect("dbname=tournament")
     c = DB.cursor()
     c.execute("INSERT INTO players (name, points) values (%s, 0)", (name,))
@@ -90,8 +92,8 @@ def reportMatch(winner, loser):
       loser:  the id number of the player who lost
     """
 
-    winner = int(winner)
-    loser = int(loser)
+    winner = int(bleach.clean(winner))
+    loser = int(bleach.clean(loser))
 
     DB = psycopg2.connect("dbname=tournament")
     c = DB.cursor()
