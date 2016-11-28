@@ -138,6 +138,7 @@ def swissPairings():
 
     return pairs
 
+
 def make_pairs(cursor, players, players_to_pair):
     # Initialize pairs list
     pairs = []
