@@ -143,8 +143,8 @@ def swissPairings():
 def make_pairs(cursor, players, players_to_pair):
     pairs = []
     matches_number = players_to_pair / 2
-    for num in range(players_to_pair - 1, -1, -1):
-        for i in range(players_to_pair - 1, -1, -1):
+    for num in range(0, players_to_pair):
+        for i in range(0, players_to_pair):
             if i != num and players[i] != False and players[num] != False:
                 print num
                 print i
