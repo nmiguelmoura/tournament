@@ -22,13 +22,16 @@ To run the code:
 - Fork and clone this repository to your system.
 
 - Through command line, navigate to the project folder and run the code:
-`vagrant up`
+`$ vagrant up`
 
 - After that, run:
-`vagrant ssh`
+`$ vagrant ssh`
 
 - Navigate to shared folder vagrant/src:
-`cd /vagrant/src`
+`$ cd /vagrant/src`
+
+- Setup the database on your system
+`$ psql -f tournament.sql`
 
 - Run the file tournament_test.py to test API
-`python tournament_test.py`
+`$ python tournament_test.py`
