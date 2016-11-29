@@ -30,8 +30,17 @@ To run the code:
 - Navigate to shared folder vagrant/src:
 `$ cd /vagrant/src`
 
-- Setup the database on your system
-`$ psql -f tournament.sql`
+- Enter psql command line:
+`$ psql`
 
-- Run the file tournament_test.py to test API
+- Create tournament database:
+`vagrant=> CREATE DATABASE tournament`
+
+- Connect to database created:
+`vagrant=> \c tournament`
+
+- Import database schema from file:
+`tournament=> \i tournament.sql`
+
+- Run the file tournament_test.py to test API (after pressing CTRL+D to exit psql command-line):
 `$ python tournament_test.py`
